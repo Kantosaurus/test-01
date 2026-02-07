@@ -23,7 +23,7 @@ export default function Home() {
   const [useAISearch, setUseAISearch] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [emailIds, setEmailIds] = useState<string[]>([])
-  
+
   const searchInputRef = useRef<HTMLInputElement>(null)
   const queryClient = useQueryClient()
   const { toggle: toggleDarkMode } = useDarkMode()
@@ -37,16 +37,16 @@ export default function Home() {
 
   const navigateEmail = useCallback((direction: 'next' | 'prev') => {
     if (!emailIds.length) return
-    
+
     const currentIndex = selectedEmailId ? emailIds.indexOf(selectedEmailId) : -1
     let newIndex: number
-    
+
     if (direction === 'next') {
       newIndex = currentIndex < emailIds.length - 1 ? currentIndex + 1 : 0
     } else {
       newIndex = currentIndex > 0 ? currentIndex - 1 : emailIds.length - 1
     }
-    
+
     setSelectedEmailId(emailIds[newIndex])
   }, [emailIds, selectedEmailId])
 
@@ -123,39 +123,47 @@ export default function Home() {
   })
 
   return (
-    <div className="h-screen flex flex-col bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-      <Header 
-        onMenuClick={() => setSidebarOpen(!sidebarOpen)}
-        onSearch={handleSearch}
-        searchQuery={searchQuery}
-      />
-      
-      <div className="flex-1 flex overflow-hidden">
-        <Sidebar 
-          isOpen={sidebarOpen}
-          currentLabel={currentLabel}
-          onLabelChange={setCurrentLabel}
-          onCompose={() => setIsComposeOpen(true)}
-          onManageLabels={() => setIsLabelManagerOpen(true)}
+    <div className="h-screen flex flex-col relative overflow-hidden">
+      {/* Aurora background effect */}
+      <div className="aurora-bg" />
+
+      {/* Main app container with glass effect */}
+      <div className="relative z-10 h-full flex flex-col">
+        <Header
+          onMenuClick={() => setSidebarOpen(!sidebarOpen)}
+          onSearch={handleSearch}
+          searchQuery={searchQuery}
         />
-        
-        <main className="flex-1 flex overflow-hidden">
-          <EmailList 
-            label={currentLabel}
-            searchQuery={searchQuery}
-            useAISearch={useAISearch}
-            selectedId={selectedEmailId}
-            onSelect={setSelectedEmailId}
-            onEmailIdsChange={setEmailIds}
+
+        <div className="flex-1 flex overflow-hidden p-4 gap-4">
+          <Sidebar
+            isOpen={sidebarOpen}
+            currentLabel={currentLabel}
+            onLabelChange={setCurrentLabel}
+            onCompose={() => setIsComposeOpen(true)}
+            onManageLabels={() => setIsLabelManagerOpen(true)}
           />
-          
-          {selectedEmailId && (
-            <EmailView 
-              emailId={selectedEmailId}
-              onClose={() => setSelectedEmailId(null)}
-            />
-          )}
-        </main>
+
+          <main className="flex-1 flex gap-4 overflow-hidden">
+            <div className={selectedEmailId ? 'w-[420px] flex-shrink-0' : 'flex-1'}>
+              <EmailList
+                label={currentLabel}
+                searchQuery={searchQuery}
+                useAISearch={useAISearch}
+                selectedId={selectedEmailId}
+                onSelect={setSelectedEmailId}
+                onEmailIdsChange={setEmailIds}
+              />
+            </div>
+
+            {selectedEmailId && (
+              <EmailView
+                emailId={selectedEmailId}
+                onClose={() => setSelectedEmailId(null)}
+              />
+            )}
+          </main>
+        </div>
       </div>
 
       {isComposeOpen && (

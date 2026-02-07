@@ -1,12 +1,13 @@
 'use client'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { 
-  X, Archive, Trash2, Clock, Reply, ReplyAll, Forward, 
-  MoreVertical, Star, Printer, ExternalLink, Sparkles
+import {
+  X, Archive, Trash2, Clock, Reply, ReplyAll, Forward,
+  Star, Printer, ExternalLink, Sparkles, MoreHorizontal
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { api } from '@/lib/api'
+import clsx from 'clsx'
 
 interface EmailViewProps {
   emailId: string
@@ -37,109 +38,127 @@ export function EmailView({ emailId, onClose }: EmailViewProps) {
 
   if (isLoading || !email) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gmail-blue" />
+      <div className="flex-1 glass-panel flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="spinner w-6 h-6" />
+          <span className="text-sm text-white/40">Loading email...</span>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="flex-1 glass-panel flex flex-col overflow-hidden animate-fade-in">
       {/* Toolbar */}
-      <div className="h-12 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="h-12 flex items-center justify-between px-4 border-b border-white/5">
         <div className="flex items-center gap-1">
-          <button 
-            onClick={onClose}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
-          >
-            <X className="w-5 h-5 text-gmail-gray" />
+          <button onClick={onClose} className="icon-btn" title="Close">
+            <X className="w-5 h-5" />
           </button>
-          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
-            <Archive className="w-5 h-5 text-gmail-gray" />
+          <div className="w-px h-5 bg-white/10 mx-1" />
+          <button className="icon-btn" title="Archive">
+            <Archive className="w-4 h-4" />
           </button>
-          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
-            <Trash2 className="w-5 h-5 text-gmail-gray" />
+          <button className="icon-btn" title="Delete">
+            <Trash2 className="w-4 h-4" />
           </button>
-          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
-            <Clock className="w-5 h-5 text-gmail-gray" />
+          <button className="icon-btn" title="Snooze">
+            <Clock className="w-4 h-4" />
           </button>
         </div>
-        
+
         <div className="flex items-center gap-1">
-          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
-            <Printer className="w-5 h-5 text-gmail-gray" />
+          <button className="icon-btn" title="Print">
+            <Printer className="w-4 h-4" />
           </button>
-          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
-            <ExternalLink className="w-5 h-5 text-gmail-gray" />
+          <button className="icon-btn" title="Open in new window">
+            <ExternalLink className="w-4 h-4" />
+          </button>
+          <button className="icon-btn" title="More options">
+            <MoreHorizontal className="w-4 h-4" />
           </button>
         </div>
       </div>
 
       {/* Email content */}
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-4xl">
-          {/* Subject */}
-          <div className="flex items-start justify-between mb-6">
-            <h1 className="text-2xl text-gray-900 dark:text-gray-100">{email.subject}</h1>
-            <div className="flex items-center gap-2">
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-3xl mx-auto p-6">
+          {/* Subject row */}
+          <div className="flex items-start justify-between gap-4 mb-6">
+            <h1 className="font-heading text-2xl font-semibold text-white leading-tight">
+              {email.subject}
+            </h1>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {/* AI Summary button */}
               <button
                 onClick={() => fetchSummary()}
                 disabled={isSummarizing}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gmail-lightGray hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-sm"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm transition-all ai-accent hover:scale-[1.02]"
               >
-                <Sparkles className={`w-4 h-4 ${isSummarizing ? 'animate-pulse' : ''}`} />
-                AI Summary
+                <Sparkles className={clsx(
+                  'w-4 h-4',
+                  isSummarizing ? 'animate-pulse-subtle' : ''
+                )} />
+                <span className="ai-accent-text font-medium">Summarize</span>
               </button>
+
+              {/* Star */}
               <button
                 onClick={() => updateMutation.mutate({ is_starred: !email.is_starred })}
+                className={clsx('star-btn', email.is_starred && 'starred')}
               >
-                <Star 
-                  className={`w-5 h-5 ${
-                    email.is_starred ? 'text-yellow-400 fill-yellow-400' : 'text-gmail-gray'
-                  }`}
-                />
+                <Star className={clsx(
+                  'w-5 h-5',
+                  email.is_starred ? 'fill-amber-400 text-amber-400' : 'text-white/40'
+                )} />
               </button>
             </div>
           </div>
 
           {/* AI Summary */}
           {summary && (
-            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <div className="mb-6 p-4 rounded-xl ai-accent animate-fade-in">
               <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="w-4 h-4 text-gmail-blue" />
-                <span className="text-sm font-medium text-gmail-blue">AI Summary</span>
+                <Sparkles className="w-4 h-4 text-accent-violet" />
+                <span className="text-sm font-medium ai-accent-text">AI Summary</span>
               </div>
-              <p className="text-sm text-gray-700 dark:text-gray-300">{summary.summary}</p>
+              <p className="text-sm text-white/70 leading-relaxed">{summary.summary}</p>
             </div>
           )}
 
-          {/* From/To */}
-          <div className="flex items-start gap-4 mb-6">
-            <div className="w-10 h-10 rounded-full bg-gmail-blue text-white flex items-center justify-center flex-shrink-0">
-              {(email.from.name || email.from.email)[0].toUpperCase()}
+          {/* Sender info */}
+          <div className="flex items-start gap-4 mb-6 pb-6 border-b border-white/5">
+            {/* Avatar */}
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-accent-cyan to-accent-violet flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-medium">
+                {(email.from.name || email.from.email)[0].toUpperCase()}
+              </span>
             </div>
-            <div className="flex-1">
+
+            <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span className="font-medium">{email.from.name || email.from.email}</span>
-                <span className="text-sm text-gmail-gray">&lt;{email.from.email}&gt;</span>
+                <span className="font-medium text-white">
+                  {email.from.name || email.from.email}
+                </span>
+                <span className="text-sm text-white/40">
+                  &lt;{email.from.email}&gt;
+                </span>
               </div>
-              <div className="text-sm text-gmail-gray">
+              <div className="text-sm text-white/40 mt-0.5">
                 to {email.to.map(t => t.name || t.email).join(', ')}
               </div>
             </div>
-            <div className="text-sm text-gmail-gray">
+
+            <div className="text-sm text-white/40 flex-shrink-0">
               {format(new Date(email.date), 'MMM d, yyyy, h:mm a')}
             </div>
           </div>
 
           {/* Labels */}
           {email.labels && email.labels.length > 0 && (
-            <div className="flex gap-2 mb-6">
+            <div className="flex flex-wrap gap-2 mb-6">
               {email.labels.map((label) => (
-                <span
-                  key={label}
-                  className="px-2 py-0.5 text-xs rounded bg-gmail-lightGray dark:bg-gray-800"
-                >
+                <span key={label} className="label-tag">
                   {label}
                 </span>
               ))}
@@ -147,23 +166,25 @@ export function EmailView({ emailId, onClose }: EmailViewProps) {
           )}
 
           {/* Body */}
-          <div className="prose dark:prose-invert max-w-none">
-            <div className="whitespace-pre-wrap">{email.body}</div>
+          <div className="prose prose-invert prose-sm max-w-none">
+            <div className="whitespace-pre-wrap text-white/80 leading-relaxed">
+              {email.body}
+            </div>
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-            <button className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800">
+          <div className="flex flex-wrap gap-3 mt-10 pt-6 border-t border-white/5">
+            <button className="action-btn">
               <Reply className="w-4 h-4" />
-              Reply
+              <span>Reply</span>
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800">
+            <button className="action-btn">
               <ReplyAll className="w-4 h-4" />
-              Reply all
+              <span>Reply all</span>
             </button>
-            <button className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800">
+            <button className="action-btn">
               <Forward className="w-4 h-4" />
-              Forward
+              <span>Forward</span>
             </button>
           </div>
         </div>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Menu, Search, Settings, HelpCircle, Grid3X3, Sparkles } from 'lucide-react'
+import { Menu, Search, Settings, HelpCircle, Sparkles, Command } from 'lucide-react'
 
 interface HeaderProps {
   onMenuClick: () => void
@@ -11,30 +11,35 @@ interface HeaderProps {
 
 export function Header({ onMenuClick, onSearch, searchQuery }: HeaderProps) {
   const [useAISearch, setUseAISearch] = useState(false)
-  
+  const [isFocused, setIsFocused] = useState(false)
+
   return (
-    <header className="h-16 flex items-center px-4 border-b border-gray-200 dark:border-gray-700">
-      <button 
+    <header className="h-16 flex items-center px-4 gap-4">
+      {/* Menu toggle */}
+      <button
         onClick={onMenuClick}
-        className="p-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+        className="icon-btn"
       >
-        <Menu className="w-5 h-5 text-gmail-gray" />
+        <Menu className="w-5 h-5" />
       </button>
-      
-      <div className="flex items-center ml-4">
-        <img 
-          src="https://ssl.gstatic.com/ui/v1/icons/mail/rfr/logo_gmail_lockup_default_1x_r5.png" 
-          alt="Gmail" 
-          className="h-8"
-        />
+
+      {/* Logo / Brand */}
+      <div className="flex items-center gap-2.5">
+        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-accent-cyan to-accent-violet flex items-center justify-center">
+          <span className="text-white font-heading font-bold text-sm">M</span>
+        </div>
+        <span className="font-heading font-semibold text-lg tracking-tight hidden sm:block">
+          Mailflow
+        </span>
       </div>
 
-      <div className="flex-1 max-w-2xl mx-8">
-        <div className="relative flex items-center">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gmail-gray" />
+      {/* Search bar */}
+      <div className="flex-1 max-w-2xl mx-4">
+        <div className={`search-container transition-all duration-300 ${isFocused ? 'scale-[1.02]' : ''}`}>
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
           <input
             type="text"
-            placeholder={useAISearch ? "AI semantic search..." : "Search mail"}
+            placeholder={useAISearch ? "Search with AI..." : "Search emails"}
             value={searchQuery}
             onChange={(e) => onSearch(e.target.value, useAISearch)}
             onKeyDown={(e) => {
@@ -42,35 +47,43 @@ export function Header({ onMenuClick, onSearch, searchQuery }: HeaderProps) {
                 onSearch(searchQuery, useAISearch)
               }
             }}
-            className="w-full pl-12 pr-14 py-3 bg-gmail-lightGray dark:bg-gray-800 rounded-full focus:outline-none focus:bg-white focus:shadow-md dark:focus:bg-gray-700 transition-all"
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            className="input-glass w-full pl-11 pr-24 py-2.5 text-sm"
           />
-          <button
-            onClick={() => setUseAISearch(!useAISearch)}
-            className={`absolute right-3 p-1.5 rounded-full transition-colors ${
-              useAISearch 
-                ? 'bg-gmail-blue text-white' 
-                : 'hover:bg-gray-200 dark:hover:bg-gray-700 text-gmail-gray'
-            }`}
-            title={useAISearch ? "AI Search enabled" : "Enable AI Search"}
-          >
-            <Sparkles className="w-4 h-4" />
-          </button>
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+            <button
+              onClick={() => setUseAISearch(!useAISearch)}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition-all duration-200 ${
+                useAISearch
+                  ? 'bg-gradient-to-r from-accent-violet/20 to-accent-rose/20 text-accent-violet border border-accent-violet/30'
+                  : 'hover:bg-white/5 text-white/40'
+              }`}
+              title={useAISearch ? "AI Search enabled" : "Enable AI Search"}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">AI</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        <button className="p-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
-          <HelpCircle className="w-5 h-5 text-gmail-gray" />
+      {/* Right side actions */}
+      <div className="flex items-center gap-1">
+        <button className="icon-btn hidden sm:flex" title="Keyboard shortcuts">
+          <Command className="w-4 h-4" />
         </button>
-        <button className="p-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
-          <Settings className="w-5 h-5 text-gmail-gray" />
+        <button className="icon-btn" title="Help">
+          <HelpCircle className="w-4 h-4" />
         </button>
-        <button className="p-3 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
-          <Grid3X3 className="w-5 h-5 text-gmail-gray" />
+        <button className="icon-btn" title="Settings">
+          <Settings className="w-4 h-4" />
         </button>
-        <div className="w-8 h-8 rounded-full bg-gmail-blue text-white flex items-center justify-center ml-2">
+
+        {/* User avatar */}
+        <button className="ml-2 w-9 h-9 rounded-xl bg-gradient-to-br from-accent-rose to-accent-violet flex items-center justify-center text-white text-sm font-medium transition-transform hover:scale-105">
           U
-        </div>
+        </button>
       </div>
     </header>
   )

@@ -1,9 +1,9 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { 
-  Inbox, Send, FileText, AlertTriangle, Trash2, Star, 
-  Tag, Plus, ChevronDown, Edit3
+import {
+  Inbox, Send, FileText, AlertTriangle, Trash2, Star,
+  Tag, Plus, Edit3
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import clsx from 'clsx'
@@ -17,12 +17,12 @@ interface SidebarProps {
 }
 
 const systemLabels = [
-  { name: 'INBOX', icon: Inbox, color: null },
-  { name: 'STARRED', icon: Star, color: '#fbbc04' },
-  { name: 'SENT', icon: Send, color: null },
-  { name: 'DRAFTS', icon: FileText, color: null },
-  { name: 'SPAM', icon: AlertTriangle, color: null },
-  { name: 'TRASH', icon: Trash2, color: null },
+  { name: 'INBOX', icon: Inbox },
+  { name: 'STARRED', icon: Star },
+  { name: 'SENT', icon: Send },
+  { name: 'DRAFTS', icon: FileText },
+  { name: 'SPAM', icon: AlertTriangle },
+  { name: 'TRASH', icon: Trash2 },
 ]
 
 export function Sidebar({ isOpen, currentLabel, onLabelChange, onCompose, onManageLabels }: SidebarProps) {
@@ -38,74 +38,92 @@ export function Sidebar({ isOpen, currentLabel, onLabelChange, onCompose, onMana
   if (!isOpen) return null
 
   return (
-    <aside className="w-64 flex-shrink-0 overflow-y-auto pt-4">
-      <button 
+    <aside className="w-56 flex-shrink-0 flex flex-col gap-4">
+      {/* Compose button */}
+      <button
         onClick={onCompose}
-        className="compose-btn ml-4 mb-4 flex items-center gap-3 px-6 py-4 rounded-2xl bg-white dark:bg-gray-800 hover:bg-gmail-lightGray dark:hover:bg-gray-700"
+        className="compose-btn text-white"
       >
-        <Edit3 className="w-6 h-6 text-gmail-gray" />
-        <span className="text-sm font-medium text-gmail-gray">Compose</span>
+        <Edit3 className="w-5 h-5" />
+        <span>Compose</span>
       </button>
 
-      <nav>
-        {systemLabels.map(({ name, icon: Icon, color }) => (
-          <button
-            key={name}
-            onClick={() => onLabelChange(name)}
-            className={clsx(
-              'w-full flex items-center gap-4 px-6 py-2 rounded-r-full transition-colors',
-              currentLabel === name
-                ? 'bg-gmail-selected text-gmail-blue font-semibold'
-                : 'hover:bg-gmail-hover text-gmail-gray'
-            )}
-          >
-            <Icon 
-              className="w-5 h-5" 
-              style={color ? { color } : undefined}
-              fill={name === 'STARRED' && currentLabel === name ? (color ?? undefined) : 'none'}
-            />
-            <span className="flex-1 text-left text-sm">{name}</span>
-            {labels?.find(l => l.name === name)?.email_count ? (
-              <span className="text-xs">{labels.find(l => l.name === name)?.email_count}</span>
-            ) : null}
-          </button>
-        ))}
+      {/* Navigation - glass panel */}
+      <nav className="glass-panel p-2 flex-1 overflow-y-auto">
+        <div className="space-y-0.5">
+          {systemLabels.map(({ name, icon: Icon }) => {
+            const isActive = currentLabel === name
+            const count = labels?.find(l => l.name === name)?.email_count
 
-        {customLabels.length > 0 && (
-          <>
-            <div className="flex items-center gap-2 px-6 py-2 mt-4">
-              <ChevronDown className="w-4 h-4 text-gmail-gray" />
-              <span className="text-xs font-medium text-gmail-gray">Labels</span>
-            </div>
-            {customLabels.map((label) => (
+            return (
               <button
-                key={label.name}
-                onClick={() => onLabelChange(label.name)}
+                key={name}
+                onClick={() => onLabelChange(name)}
                 className={clsx(
-                  'w-full flex items-center gap-4 px-6 py-2 rounded-r-full transition-colors',
-                  currentLabel === label.name
-                    ? 'bg-gmail-selected text-gmail-blue font-semibold'
-                    : 'hover:bg-gmail-hover text-gmail-gray'
+                  'nav-item w-full group',
+                  isActive && 'active'
                 )}
               >
-                <Tag 
-                  className="w-5 h-5" 
-                  style={label.color ? { color: label.color } : undefined}
+                <Icon
+                  className={clsx(
+                    'w-[18px] h-[18px] transition-colors',
+                    name === 'STARRED' && isActive && 'text-amber-400 fill-amber-400'
+                  )}
                 />
-                <span className="flex-1 text-left text-sm">{label.name}</span>
-                {label.email_count > 0 && (
-                  <span className="text-xs">{label.email_count}</span>
-                )}
+                <span className="flex-1 text-left text-sm capitalize">
+                  {name.toLowerCase()}
+                </span>
+                {count ? (
+                  <span className={clsx(
+                    'text-xs tabular-nums',
+                    isActive ? 'text-accent-cyan' : 'text-white/40'
+                  )}>
+                    {count}
+                  </span>
+                ) : null}
               </button>
-            ))}
-          </>
+            )
+          })}
+        </div>
+
+        {/* Custom labels section */}
+        {customLabels.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-white/5">
+            <div className="px-3 mb-2">
+              <span className="text-[11px] font-medium text-white/30 uppercase tracking-wider">
+                Labels
+              </span>
+            </div>
+            <div className="space-y-0.5">
+              {customLabels.map((label) => (
+                <button
+                  key={label.name}
+                  onClick={() => onLabelChange(label.name)}
+                  className={clsx(
+                    'nav-item w-full',
+                    currentLabel === label.name && 'active'
+                  )}
+                >
+                  <Tag
+                    className="w-[18px] h-[18px]"
+                    style={label.color ? { color: label.color } : undefined}
+                  />
+                  <span className="flex-1 text-left text-sm">{label.name}</span>
+                  {label.email_count > 0 && (
+                    <span className="text-xs text-white/40">{label.email_count}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
         )}
 
-        <button 
+        {/* Add label button */}
+        <button
           onClick={onManageLabels}
-          className="w-full flex items-center gap-4 px-6 py-2 mt-2 hover:bg-gmail-hover text-gmail-gray rounded-r-full"
+          className="nav-item w-full mt-2"
         >
-          <Plus className="w-5 h-5" />
+          <Plus className="w-[18px] h-[18px]" />
           <span className="text-sm">Manage labels</span>
         </button>
       </nav>

@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useEffect } from 'react'
-import { RefreshCw, MoreVertical, ChevronLeft, ChevronRight } from 'lucide-react'
+import { RefreshCw, MoreHorizontal, ChevronLeft, ChevronRight, Inbox } from 'lucide-react'
 import { api } from '@/lib/api'
 import { EmailItem } from './EmailItem'
 
@@ -20,9 +20,7 @@ export function EmailList({ label, searchQuery, useAISearch, selectedId, onSelec
     queryKey: ['emails', label, searchQuery, useAISearch],
     queryFn: async () => {
       if (useAISearch && searchQuery) {
-        // Use semantic search
         const results = await api.semanticSearch({ query: searchQuery, limit: 50 })
-        // Fetch full email details for each result
         const emails = await Promise.all(
           results.results.map(async (r) => {
             try {
@@ -43,7 +41,6 @@ export function EmailList({ label, searchQuery, useAISearch, selectedId, onSelec
     },
   })
 
-  // Emit email IDs when data changes
   useEffect(() => {
     if (data?.emails && onEmailIdsChange) {
       onEmailIdsChange(data.emails.map(e => e.id))
@@ -51,57 +48,70 @@ export function EmailList({ label, searchQuery, useAISearch, selectedId, onSelec
   }, [data?.emails, onEmailIdsChange])
 
   return (
-    <div className="flex-1 flex flex-col border-r border-gray-200 dark:border-gray-700 min-w-[400px]">
+    <div className="h-full glass-panel flex flex-col overflow-hidden">
       {/* Toolbar */}
-      <div className="h-12 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center gap-2">
-          <input type="checkbox" className="w-4 h-4 rounded" />
-          <button 
+      <div className="h-12 flex items-center justify-between px-3 border-b border-white/5">
+        <div className="flex items-center gap-1">
+          <input
+            type="checkbox"
+            className="w-4 h-4 rounded bg-white/5 border-white/10 checked:bg-accent-cyan"
+          />
+          <button
             onClick={() => refetch()}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="icon-btn ml-1"
+            title="Refresh"
           >
-            <RefreshCw className={`w-4 h-4 text-gmail-gray ${isFetching ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
           </button>
-          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
-            <MoreVertical className="w-4 h-4 text-gmail-gray" />
+          <button className="icon-btn" title="More actions">
+            <MoreHorizontal className="w-4 h-4" />
           </button>
         </div>
-        
-        <div className="flex items-center gap-1 text-xs text-gmail-gray">
-          <span>
+
+        <div className="flex items-center gap-2 text-xs text-white/40">
+          <span className="tabular-nums">
             {data?.emails.length ? `1-${data.emails.length}` : '0'} of {data?.total || 0}
           </span>
-          <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800">
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <button className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800">
-            <ChevronRight className="w-4 h-4" />
-          </button>
+          <div className="flex items-center">
+            <button className="icon-btn p-1.5">
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button className="icon-btn p-1.5">
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Email list */}
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
-          <div className="flex items-center justify-center h-32">
-            <RefreshCw className="w-6 h-6 text-gmail-gray animate-spin" />
+          <div className="flex flex-col items-center justify-center h-48 gap-3">
+            <div className="spinner" />
+            <span className="text-sm text-white/40">Loading emails...</span>
           </div>
         ) : data?.emails.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-gmail-gray">
-            <p className="text-lg">No emails found</p>
-            <p className="text-sm mt-2">
-              {searchQuery ? 'Try a different search' : 'Your inbox is empty'}
+          <div className="flex flex-col items-center justify-center h-64 text-center px-8">
+            <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4">
+              <Inbox className="w-8 h-8 text-white/20" />
+            </div>
+            <p className="text-white/60 font-medium">No emails found</p>
+            <p className="text-sm text-white/30 mt-1">
+              {searchQuery ? 'Try a different search term' : 'Your inbox is empty'}
             </p>
           </div>
         ) : (
-          data?.emails.map((email) => (
-            <EmailItem
-              key={email.id}
-              email={email}
-              isSelected={selectedId === email.id}
-              onClick={() => onSelect(email.id)}
-            />
-          ))
+          <div className="divide-y divide-white/[0.03]">
+            {data?.emails.map((email, index) => (
+              <EmailItem
+                key={email.id}
+                email={email}
+                isSelected={selectedId === email.id}
+                onClick={() => onSelect(email.id)}
+                style={{ animationDelay: `${index * 30}ms` }}
+              />
+            ))}
+          </div>
         )}
       </div>
     </div>
